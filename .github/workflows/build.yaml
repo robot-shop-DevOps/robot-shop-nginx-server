@@ -51,7 +51,7 @@ jobs:
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
           ssh -o StrictHostKeyChecking=no \
           ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-          "sed -i \
+          "sudo sed -i \
           's|env LUA_DIR=/usr/local/openresty/nginx/conf/lua|env LUA_DIR=/usr/local/openresty/nginx/conf/tmp/lua|' \
           /usr/local/openresty/nginx/conf/tmp/nginx/nginx.conf \
           && sudo /usr/bin/openresty -t -c /usr/local/openresty/nginx/conf/tmp/nginx/nginx.conf"
