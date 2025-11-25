@@ -53,7 +53,7 @@ jobs:
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
           ssh -o StrictHostKeyChecking=no \
           ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-          export LUA_DIR=${{ env.LUA_DIR }} && sudo -E nginx -t -c /etc/nginx/tmp/nginx.conf
+          export LUA_DIR=${{ env.LUA_DIR }} && sudo -E /usr/sbin/nginx -t -c /etc/nginx/tmp/nginx.conf
           
   deploy:
     if: ${{ github.ref_name == 'develop' }}
