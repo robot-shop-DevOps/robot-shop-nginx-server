@@ -24,7 +24,12 @@ jobs:
 
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
           scp -o StrictHostKeyChecking=no -r nginx/* \
-          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/etc/nginx/tmp/
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/WebServer/nginx-tmp/
+
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
+          ssh -o StrictHostKeyChecking=no \
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
+          sudo cp /home/WebServer/nginx-tmp/* /etc/nginx/tmp/
 
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
           ssh -o StrictHostKeyChecking=no \
