@@ -33,7 +33,7 @@ jobs:
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
           ssh -o StrictHostKeyChecking=no \
           ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-          sudo cp /home/WebServer/nginx-tmp/lua/* /etc/nginx/tmp/lua/
+          sudo cp -r /home/WebServer/nginx-tmp/lua/* /etc/nginx/tmp/lua/
 
       - name: Validate nginx configuration
         env:
@@ -48,7 +48,7 @@ jobs:
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
           ssh -o StrictHostKeyChecking=no \
           ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-          sudo cp /home/WebServer/nginx-tmp/* /etc/nginx/tmp/
+          sudo cp -r /home/WebServer/nginx-tmp/* /etc/nginx/tmp/
 
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
           ssh -o StrictHostKeyChecking=no \
