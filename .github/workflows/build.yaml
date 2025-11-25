@@ -28,32 +28,31 @@ jobs:
 
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
           scp -o StrictHostKeyChecking=no -r httplua/* \
-          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/WebServer/nginx-tmp/lua/
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/WebServer/openresty-tmp/lua/
 
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
           ssh -o StrictHostKeyChecking=no \
           ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-          sudo cp -r /home/WebServer/nginx-tmp/lua/* /etc/nginx/tmp/lua/
+          sudo cp -r /home/WebServer/openresty-tmp/lua/* /usr/local/openresty/nginx/conf/tmp/nginx/
 
       - name: Validate nginx configuration
-        env:
-          LUA_DIR: /etc/nginx/tmp/lua
         run: |
           set -e
 
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
           scp -o StrictHostKeyChecking=no -r nginx/* \
-          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/WebServer/nginx-tmp/
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/WebServer/openresty-tmp/nginx/
 
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
           ssh -o StrictHostKeyChecking=no \
           ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-          sudo cp -r /home/WebServer/nginx-tmp/* /etc/nginx/tmp/
+          sudo cp -r /home/WebServer/openresty-tmp/nginx/* /usr/local/openresty/nginx/conf/tmp/lua/
 
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
           ssh -o StrictHostKeyChecking=no \
           ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-          "export LUA_DIR=${{ env.LUA_DIR }} && sudo -E /usr/sbin/nginx -t -c /etc/nginx/tmp/nginx.conf"
+          "sed -i 's|env LUA_DIR=/usr/local/openresty/nginx/conf/lua|env LUA_DIR=/usr/local/openresty/nginx/conf/tmp/lua|' \
+          && sudo /usr/bin/openresty -t -c /usr/local/openresty/nginx/conf/tmp/nginx/nginx.conf"
           
   deploy:
     if: ${{ github.ref_name == 'develop' }}

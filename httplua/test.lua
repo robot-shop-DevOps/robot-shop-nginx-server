@@ -1,3 +1,3 @@
 return function() 
-    return "Testing Lua for Nginx..."
+    ngx.say("Testing Lua for Nginx...")
 end
