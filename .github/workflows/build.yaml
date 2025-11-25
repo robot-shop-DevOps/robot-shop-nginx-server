@@ -1,17 +1,92 @@
-name: Validate and Push Nginx files to Development
+name: Validate and Push Openresty configuration to Development
 
 on:
   push:
-    branches:
-      - '**'   
+    branches-ignore:
+      - main  
 
   pull_request:
     branches:
       - develop
 
+  workflow_dispatch:
+
 jobs:
   validate:
     runs-on: robot-shop-runner-azure-dev
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
+      - name: Validate lua configuration
+        run: |
+          set -e
+
+          for file in httplua/*.lua; do
+            luac -p "$file"
+          done
+
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
+          scp -o StrictHostKeyChecking=no -r httplua/* \
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/WebServer/openresty-tmp/lua/
+
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
+          ssh -o StrictHostKeyChecking=no \
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
+          sudo cp -r /home/WebServer/openresty-tmp/lua/* /usr/local/openresty/nginx/conf/tmp/lua/
+
+      - name: Validate openresty configuration
+        run: |
+          set -e
+
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
+          scp -o StrictHostKeyChecking=no -r openresty/* \
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/WebServer/openresty-tmp/nginx/
+
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
+          ssh -o StrictHostKeyChecking=no \
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
+          sudo cp -r /home/WebServer/openresty-tmp/nginx/* /usr/local/openresty/nginx/conf/tmp/nginx/
+
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
+          ssh -o StrictHostKeyChecking=no \
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
+          "sudo sed -i \
+          's|env LUA_DIR=/usr/local/openresty/nginx/conf/lua|env LUA_DIR=/usr/local/openresty/nginx/conf/tmp/lua|' \
+          /usr/local/openresty/nginx/conf/tmp/nginx/nginx.conf \
+          && sudo /usr/bin/openresty -t -c /usr/local/openresty/nginx/conf/tmp/nginx/nginx.conf"
+          
   deploy:
+    if: ${{ github.ref_name == 'develop' }}
+    needs: validate
     runs-on: robot-shop-runner-azure-dev
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Copy lua configuration files to server
+        run: |
+          set -e
+
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
+          ssh -o StrictHostKeyChecking=no \
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
+          sudo cp -r /home/WebServer/openresty-tmp/lua/* /usr/local/openresty/nginx/conf/lua/
+
+      - name: Copy openresty configuration files to server
+        run: |
+          set -e
+
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
+          ssh -o StrictHostKeyChecking=no \
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
+          sudo cp -r /home/WebServer/openresty-tmp/nginx/* /usr/local/openresty/nginx/conf/
+
+      - name: Reload openresty configuration on server
+        run: |
+          set -e
+
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
+          ssh -o StrictHostKeyChecking=no \
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
+          sudo /usr/bin/openresty -t && sudo /usr/bin/openresty -s reload
