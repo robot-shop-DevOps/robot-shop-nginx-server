@@ -18,7 +18,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Validate lua configuration
+        run: |
+          set -e
+
+          for file in httplua/*.lua; do
+            luac -p "$file"
+          done
+
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
+          scp -o StrictHostKeyChecking=no -r httplua/* \
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/WebServer/nginx-tmp/lua/
+
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
+          ssh -o StrictHostKeyChecking=no \
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
+          sudo cp /home/WebServer/nginx-tmp/lua/* /etc/nginx/tmp/lua/
+
       - name: Validate nginx configuration
+        env:
+          LUA_DIR: /etc/nginx/tmp/lua
         run: |
           set -e
 
@@ -34,15 +53,8 @@ jobs:
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
           ssh -o StrictHostKeyChecking=no \
           ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-          sudo nginx -t -c /etc/nginx/tmp/nginx.conf
-
-      - name: Validate lua configuration
-        run: |
-          set -e
-
-          for file in httplua/*.lua; do
-            luac -p "$file"
-          done
+          export LUA_DIR=${{ env.LUA_DIR }} \
+          sudo -E nginx -t -c /etc/nginx/tmp/nginx.conf
           
   deploy:
     if: ${{ github.ref_name == 'develop' }}
