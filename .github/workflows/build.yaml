@@ -33,7 +33,7 @@ jobs:
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
           ssh -o StrictHostKeyChecking=no \
           ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-          sudo cp -r /home/WebServer/openresty-tmp/lua/* /usr/local/openresty/nginx/conf/tmp/nginx/
+          sudo cp -r /home/WebServer/openresty-tmp/lua/* /usr/local/openresty/nginx/conf/tmp/lua/
 
       - name: Validate nginx configuration
         run: |
@@ -46,7 +46,7 @@ jobs:
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
           ssh -o StrictHostKeyChecking=no \
           ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-          sudo cp -r /home/WebServer/openresty-tmp/nginx/* /usr/local/openresty/nginx/conf/tmp/lua/
+          sudo cp -r /home/WebServer/openresty-tmp/nginx/* /usr/local/openresty/nginx/conf/tmp/nginx/
 
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
           ssh -o StrictHostKeyChecking=no \
