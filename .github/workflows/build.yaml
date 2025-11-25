@@ -89,4 +89,4 @@ jobs:
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
           ssh -o StrictHostKeyChecking=no \
           ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-          sudo /usr/bin/openresty -t && sudo /usr/bin/openresty -s reload
+          "sudo /usr/bin/openresty -t && sudo /usr/bin/openresty -s reload"
