@@ -1,4 +1,4 @@
-name: Validate and Push Nginx files to Development
+name: Validate and Push Openresty configuration to Development
 
 on:
   push:
@@ -35,12 +35,12 @@ jobs:
           ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
           sudo cp -r /home/WebServer/openresty-tmp/lua/* /usr/local/openresty/nginx/conf/tmp/lua/
 
-      - name: Validate nginx configuration
+      - name: Validate openresty configuration
         run: |
           set -e
 
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
-          scp -o StrictHostKeyChecking=no -r nginx/* \
+          scp -o StrictHostKeyChecking=no -r openresty/* \
           ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/WebServer/openresty-tmp/nginx/
 
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
@@ -69,23 +69,24 @@ jobs:
           set -e
 
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
-          scp -o StrictHostKeyChecking=no -r httplua/* \
-          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/etc/nginx/lua/
+          ssh -o StrictHostKeyChecking=no \
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
+          sudo cp -r /home/WebServer/openresty-tmp/lua/* /usr/local/openresty/nginx/conf/lua/
 
-      - name: Copy nginx configuration files to server
-        run: |
-          set -e
-
-          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
-          scp -o StrictHostKeyChecking=no -r nginx/* \
-          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/etc/nginx/
-
-      - name: Reload nginx configuration on server
+      - name: Copy openresty configuration files to server
         run: |
           set -e
 
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
           ssh -o StrictHostKeyChecking=no \
           ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-          sudo nginx -t \
-          sudo systemctl reload nginx
+          sudo cp -r /home/WebServer/openresty-tmp/nginx/* /usr/local/openresty/nginx/conf/
+
+      - name: Reload openresty configuration on server
+        run: |
+          set -e
+
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
+          ssh -o StrictHostKeyChecking=no \
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
+          sudo /usr/bin/openresty -t && sudo /usr/bin/openresty -s reload
