@@ -1,17 +1,20 @@
-name: Validate and Push Nginx files to Development
+name: Validate and Push Openresty configuration to Development
 
 on:
   push:
-    branches:
-      - '**'   
+    branches-ignore:
+      - main  
 
   pull_request:
     branches:
       - develop
 
-jobs:
-  validate:
-    runs-on: robot-shop-runner-azure-dev
+  workflow_dispatch:
 
+jobs:
   deploy:
-    runs-on: robot-shop-runner-azure-dev
+    uses: robot-shop-DevOps/robot-shop-github-actions/.github/workflows/openresty.yaml@main
+    with:
+      LUA_DIR: ./httplua
+      OPENRESTY_DIR: ./openresty
+    secrets: inherit
